@@ -1,4 +1,4 @@
-# VetCheck — Versão 2
+# VetCheck - Versão 2
 
 Protótipo funcional e navegável (sem backend) para validar o fluxo de uso de
 uma plataforma de acompanhamento veterinário com dois grandes contextos:
