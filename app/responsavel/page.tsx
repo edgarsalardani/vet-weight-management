@@ -2,17 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, FlaskConical, FolderOpen } from "lucide-react";
+import { ChevronRight, FlaskConical } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { AnimalAvatar } from "@/components/animals/AnimalAvatar";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Stat } from "@/components/ui/Stat";
-import { Spinner } from "@/components/ui/Spinner";
+import { MetricTile } from "@/components/ui/MetricTile";
+import { SectionTitle } from "@/components/ui/SectionTitle";
+import { IconTile } from "@/components/ui/IconTile";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { ChartCard } from "@/components/charts/ChartCard";
 import { WeightChart } from "@/components/charts/WeightChart";
 import { ScoreChart } from "@/components/charts/ScoreChart";
 import { CompositionChart } from "@/components/charts/CompositionChart";
 import { BodySilhouette } from "@/components/assessments/BodySilhouette";
+import { EvolutionSilhouettes } from "@/components/assessments/EvolutionSilhouettes";
 import { AssessmentListItem } from "@/components/assessments/AssessmentListItem";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { DocumentListItem } from "@/components/documents/DocumentListItem";
@@ -47,6 +53,8 @@ const TOM_POR_CATEGORIA = {
   high: "high",
 } as const;
 
+const RELATORIOS_VISIVEIS = 3;
+
 export default function MeuPetPage() {
   const { sessao } = useAuth();
   const [animal, setAnimal] = useState<Animal | null>(null);
@@ -56,6 +64,7 @@ export default function MeuPetPage() {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [projeto, setProjeto] = useState<ProjetoPesquisa | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [verTodosRelatorios, setVerTodosRelatorios] = useState(false);
 
   useEffect(() => {
     if (!sessao?.animalId) return;
@@ -84,12 +93,13 @@ export default function MeuPetPage() {
     };
   }, [sessao]);
 
-  if (carregando) return <Spinner label="Carregando seu pet…" />;
-  if (!animal) return <p className="text-ink-muted">Nenhum animal vinculado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando seu animal…" />;
+  if (!animal) {
+    return <p className="text-base text-ink-muted">Nenhum animal vinculado.</p>;
+  }
 
   const atual = avaliacoes[avaliacoes.length - 1] ?? null;
   const inicial = avaliacoes[0] ?? null;
-  const meio = avaliacoes[Math.floor((avaliacoes.length - 1) / 2)];
   const temEvolucao = avaliacoes.length >= 2;
 
   const faixaAtual = atual ? classificarEscore(atual.escoreCorporal) : null;
@@ -102,236 +112,218 @@ export default function MeuPetPage() {
   const deltaPeso = temEvolucao && inicial && atual ? inicial.peso - atual.peso : null;
 
   const ultimosRelatorios = [...avaliacoes].reverse();
+  const relatoriosExibidos = verTodosRelatorios
+    ? ultimosRelatorios
+    : ultimosRelatorios.slice(0, RELATORIOS_VISIVEIS);
+
+  const primeiroNome = sessao?.nome.split(" ")[0];
+
+  // Atalhos de navegação dentro da página (somente seções que existem)
+  const atalhos = [
+    proximoRetorno && { id: "retorno", label: "Retorno" },
+    recomendacaoAtual && { id: "recomendacoes", label: "Recomendações" },
+    temEvolucao && { id: "evolucao", label: "Evolução" },
+    atual && { id: "relatorios", label: "Relatórios" },
+    documentos.length > 0 && { id: "documentos", label: "Documentos" },
+    projeto && { id: "pesquisa", label: "Pesquisa" },
+  ].filter(Boolean) as { id: string; label: string }[];
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-6 flex flex-col items-center text-center">
-        <AnimalAvatar nome={animal.nome} fotoUrl={animal.fotoUrl} tamanho="lg" />
-        <h1 className="mt-3 text-xl font-semibold text-ink sm:text-2xl">
-          {animal.nome}
-        </h1>
-        <p className="text-sm text-ink-muted">
-          {animal.raca} · {PORTE_LABELS[animal.porte]} ·{" "}
-          {calcularIdadeTexto(animal.dataNascimento)}
+    <div className="mx-auto max-w-3xl">
+      {/* Cartão principal: situação atual sempre visível */}
+      <section className="overflow-hidden rounded-card border border-line/70 bg-gradient-to-br from-primary-50 via-white to-white p-5 shadow-card sm:p-8">
+        <p className="text-sm font-semibold text-primary">
+          {primeiroNome ? `Olá, ${primeiroNome}` : "Olá"}
         </p>
-      </div>
+        <div className="mt-3 flex items-center gap-4 sm:gap-5">
+          <AnimalAvatar nome={animal.nome} fotoUrl={animal.fotoUrl} tamanho="lg" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight text-ink">{animal.nome}</h1>
+            <p className="mt-1 text-base text-ink-muted">
+              {animal.raca} · {PORTE_LABELS[animal.porte]}
+            </p>
+            <p className="text-base text-ink-muted">
+              {calcularIdadeTexto(animal.dataNascimento)}
+            </p>
+          </div>
+        </div>
 
-      {proximoRetorno && (
-        <>
-          <ReturnReminderBanner compromisso={proximoRetorno} nomeAnimal={animal.nome} />
-          <div className="mb-4">
+        {atual ? (
+          <>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+              <MetricTile label="Peso atual" valor={formatarPeso(atual.peso)} />
+              <MetricTile
+                label="Escore corporal"
+                valor={`${atual.escoreCorporal} / 9`}
+                detalhe={
+                  faixaAtual && (
+                    <Badge tom={TOM_POR_CATEGORIA[faixaAtual.categoria]}>
+                      {faixaAtual.label}
+                    </Badge>
+                  )
+                }
+              />
+              {atual.massaGorda != null && (
+                <MetricTile label="Massa gorda" valor={`${atual.massaGorda}%`} />
+              )}
+              {atual.massaMagra != null && (
+                <MetricTile label="Massa magra" valor={`${atual.massaMagra}%`} />
+              )}
+            </div>
+            <p className="mt-4 text-sm text-ink-muted">
+              Última avaliação em{" "}
+              <span className="font-semibold text-ink">{formatarDataCurta(atual.data)}</span>
+            </p>
+          </>
+        ) : (
+          <p className="mt-6 text-base text-ink-muted">
+            Ainda não há avaliações registradas para {animal.nome}.
+          </p>
+        )}
+      </section>
+
+      {/* Atalhos entre as seções da página */}
+      {atalhos.length > 1 && (
+        <nav
+          aria-label="Seções da página"
+          className="no-scrollbar sticky top-16 z-20 -mx-4 mt-4 flex gap-2 overflow-x-auto bg-bg/90 px-4 py-2.5 backdrop-blur-md sm:mx-0 sm:px-0"
+        >
+          {atalhos.map((a) => (
+            <a
+              key={a.id}
+              href={`#${a.id}`}
+              className="inline-flex h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink-muted shadow-soft transition duration-150 hover:border-primary/40 hover:bg-primary-50 hover:text-primary active:scale-95"
+            >
+              {a.label}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      <div className="mt-6 space-y-10">
+        {proximoRetorno && (
+          <section id="retorno" className="scroll-mt-36 space-y-4">
+            <ReturnReminderBanner compromisso={proximoRetorno} nomeAnimal={animal.nome} />
             <NextAppointmentCard
               compromisso={proximoRetorno}
               nomeAnimal={animal.nome}
               onAtualizado={setProximoRetorno}
             />
-          </div>
-        </>
-      )}
+          </section>
+        )}
 
-      {recomendacaoAtual && (
-        <div className="mb-4">
-          <h2 className="mb-2 text-sm font-medium text-ink">
-            Recomendações atuais
-          </h2>
-          <RecommendationCard recomendacao={recomendacaoAtual} vigente />
-        </div>
-      )}
+        {recomendacaoAtual && (
+          <section id="recomendacoes" className="scroll-mt-36">
+            <SectionTitle>Recomendações atuais</SectionTitle>
+            <RecommendationCard recomendacao={recomendacaoAtual} vigente />
+          </section>
+        )}
 
-      {projeto && (
-        <Link
-          href="/responsavel/pesquisa"
-          className="mb-4 flex items-center gap-3 rounded-card border border-line bg-surface p-3.5 shadow-card transition-colors hover:border-primary/40"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-primary-light text-primary">
-            <FlaskConical className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-ink-faint">Projeto de pesquisa</p>
-            <p className="truncate text-sm font-medium text-ink">{projeto.nome}</p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" />
-        </Link>
-      )}
-
-      {!atual ? (
-        <p className="text-center text-sm text-ink-muted">
-          Ainda não há avaliações registradas para {animal.nome}.
-        </p>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Peso atual" valor={formatarPeso(atual.peso)} />
-            <Stat
-              label="Escore corporal"
-              valor={`${atual.escoreCorporal}/9`}
-              variacao={faixaAtual?.label}
-              tomVariacao={
-                faixaAtual?.categoria === "ideal"
-                  ? "positivo"
-                  : faixaAtual?.categoria === "high"
-                  ? "negativo"
-                  : "neutral"
-              }
-            />
-            {atual.massaGorda != null && (
-              <Stat label="Massa gorda" valor={`${atual.massaGorda}%`} />
-            )}
-            {atual.massaMagra != null && (
-              <Stat label="Massa magra" valor={`${atual.massaMagra}%`} />
-            )}
-          </div>
-
-          {temEvolucao && (
-            <Card className="mt-4">
-              <CardHeader>
-                <p className="text-sm font-medium text-ink">
-                  Progresso desde o início do acompanhamento
-                </p>
-              </CardHeader>
-              <CardBody className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <Stat
-                  label={
-                    (deltaPeso ?? 0) >= 0 ? "Peso perdido" : "Peso ganho"
-                  }
-                  valor={formatarPeso(Math.abs(deltaPeso ?? 0))}
-                  variacao={formatarPercentualComSinal(variacaoPeso ?? 0)}
-                />
-                <Stat
-                  label="Escore corporal"
-                  valor={`${inicial!.escoreCorporal} → ${atual.escoreCorporal}`}
-                />
-                <Stat
-                  label="Acompanhando desde"
-                  valor={formatarDataCurta(inicial!.data)}
-                />
-              </CardBody>
-            </Card>
-          )}
-
-          {temEvolucao && (
-            <div className="mt-4 space-y-4">
-              <Card>
-                <CardHeader>
-                  <p className="text-sm font-medium text-ink">
-                    Peso ao longo do tempo
-                  </p>
-                </CardHeader>
-                <CardBody>
-                  <WeightChart avaliacoes={avaliacoes} />
-                </CardBody>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <p className="text-sm font-medium text-ink">
-                    Escore de condição corporal ao longo do tempo
-                  </p>
-                </CardHeader>
-                <CardBody>
-                  <ScoreChart avaliacoes={avaliacoes} />
-                </CardBody>
-              </Card>
-
-              {(atual.massaGorda != null || atual.massaMagra != null) && (
-                <Card>
-                  <CardHeader>
-                    <p className="text-sm font-medium text-ink">
-                      Composição corporal ao longo do tempo
-                    </p>
-                  </CardHeader>
-                  <CardBody>
-                    <CompositionChart avaliacoes={avaliacoes} />
-                  </CardBody>
-                </Card>
-              )}
-
-              <Card>
-                <CardHeader>
-                  <p className="text-sm font-medium text-ink">
-                    Representação visual da evolução
-                  </p>
-                </CardHeader>
-                <CardBody>
-                  <p className="mb-4 text-xs text-ink-muted">
-                    Ilustração simulada com base no escore de cada avaliação —
-                    não representa a aparência real do animal.
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[inicial!, meio, atual].map((av, i) => {
-                      const rotulo = ["Inicial", "Evolução", "Atual"][i];
-                      return (
-                        <div
-                          key={av.id}
-                          className="flex flex-col items-center gap-1.5 rounded-control border border-line bg-surfaceMuted/60 p-3 text-center"
-                        >
-                          <span className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-                            {rotulo}
-                          </span>
-                          <BodySilhouette escore={av.escoreCorporal} tamanho="md" />
-                          <span className="numeric text-sm font-medium text-ink">
-                            ECC {av.escoreCorporal}
-                          </span>
-                          <span className="text-[11px] text-ink-muted">
-                            {formatarDataCurta(av.data)}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <p className="text-sm font-medium text-ink">
-                    Comparação: início × atual
-                  </p>
-                </CardHeader>
-                <CardBody>
-                  <div className="grid grid-cols-2 gap-3">
-                    <ColunaComparacao
-                      rotulo="Início"
-                      avaliacao={inicial!}
-                      tom={TOM_POR_CATEGORIA[faixaInicial!.categoria]}
-                    />
-                    <ColunaComparacao
-                      rotulo="Atual"
-                      avaliacao={atual}
-                      tom={TOM_POR_CATEGORIA[faixaAtual!.categoria]}
-                    />
-                  </div>
-                </CardBody>
-              </Card>
+        {atual && temEvolucao && inicial && (
+          <section id="evolucao" className="scroll-mt-36 space-y-4">
+            <SectionTitle>Progresso desde o início</SectionTitle>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              <Stat
+                label={(deltaPeso ?? 0) >= 0 ? "Peso perdido" : "Peso ganho"}
+                valor={formatarPeso(Math.abs(deltaPeso ?? 0))}
+                variacao={formatarPercentualComSinal(variacaoPeso ?? 0)}
+              />
+              <Stat
+                label="Escore corporal"
+                valor={`${inicial.escoreCorporal} → ${atual.escoreCorporal}`}
+              />
+              <Stat label="Acompanhando desde" valor={formatarDataCurta(inicial.data)} />
             </div>
-          )}
 
-          <div className="mt-6">
-            <h2 className="mb-3 text-sm font-medium text-ink">
-              Últimos relatórios pós-retorno
-            </h2>
-            <div className="space-y-3">
-              {ultimosRelatorios.map((av) => (
+            <ChartCard titulo="Peso ao longo do tempo">
+              <WeightChart avaliacoes={avaliacoes} />
+            </ChartCard>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ChartCard titulo="Escore de condição corporal">
+                <ScoreChart avaliacoes={avaliacoes} />
+              </ChartCard>
+              {(atual.massaGorda != null || atual.massaMagra != null) && (
+                <ChartCard titulo="Composição corporal">
+                  <CompositionChart avaliacoes={avaliacoes} />
+                </ChartCard>
+              )}
+            </div>
+
+            <ChartCard titulo="Representação visual da evolução">
+              <EvolutionSilhouettes avaliacoes={avaliacoes} />
+            </ChartCard>
+
+            <ChartCard titulo="Comparação: início × atual">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <ColunaComparacao
+                  rotulo="Início"
+                  avaliacao={inicial}
+                  tom={TOM_POR_CATEGORIA[faixaInicial!.categoria]}
+                />
+                <ColunaComparacao
+                  rotulo="Atual"
+                  avaliacao={atual}
+                  tom={TOM_POR_CATEGORIA[faixaAtual!.categoria]}
+                />
+              </div>
+            </ChartCard>
+          </section>
+        )}
+
+        {atual && (
+          <section id="relatorios" className="scroll-mt-36">
+            <SectionTitle>Relatórios pós-retorno</SectionTitle>
+            <div className="space-y-4">
+              {relatoriosExibidos.map((av) => (
                 <AssessmentListItem key={av.id} avaliacao={av} />
               ))}
             </div>
-          </div>
-
-          {documentos.length > 0 && (
-            <div className="mt-6">
-              <h2 className="mb-3 flex items-center gap-1.5 text-sm font-medium text-ink">
-                <FolderOpen className="h-4 w-4" />
-                Documentos disponibilizados
-              </h2>
-              <div className="space-y-3">
-                {documentos.map((doc) => (
-                  <DocumentListItem key={doc.id} documento={doc} />
-                ))}
+            {ultimosRelatorios.length > RELATORIOS_VISIVEIS && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setVerTodosRelatorios((v) => !v)}
+                >
+                  {verTodosRelatorios
+                    ? "Mostrar menos"
+                    : `Ver todos os ${ultimosRelatorios.length} relatórios`}
+                </Button>
               </div>
+            )}
+          </section>
+        )}
+
+        {documentos.length > 0 && (
+          <section id="documentos" className="scroll-mt-36">
+            <SectionTitle>Documentos disponibilizados</SectionTitle>
+            <div className="space-y-4">
+              {documentos.map((doc) => (
+                <DocumentListItem key={doc.id} documento={doc} />
+              ))}
             </div>
-          )}
-        </>
-      )}
+          </section>
+        )}
+
+        {projeto && (
+          <section id="pesquisa" className="scroll-mt-36">
+            <SectionTitle>Projeto de pesquisa</SectionTitle>
+            <Link href="/responsavel/pesquisa" className="block rounded-card">
+              <Card className="transition duration-150 hover:-translate-y-0.5 hover:shadow-elevated">
+                <CardBody className="flex items-center gap-4">
+                  <IconTile icon={FlaskConical} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-ink-muted">Seu animal participa de</p>
+                    <p className="text-base font-semibold text-ink">{projeto.nome}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" />
+                </CardBody>
+              </Card>
+            </Link>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
@@ -346,8 +338,8 @@ function ColunaComparacao({
   tom: "low" | "ideal" | "high";
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-control border border-line bg-surfaceMuted/60 p-4 text-center">
-      <span className="text-xs font-medium uppercase tracking-wide text-ink-faint">
+    <div className="flex flex-col items-center gap-2 rounded-2xl bg-surfaceMuted/70 p-4 text-center">
+      <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink-muted shadow-soft">
         {rotulo}
       </span>
       {avaliacao.fotoUrl ? (
@@ -355,20 +347,14 @@ function ColunaComparacao({
         <img
           src={avaliacao.fotoUrl}
           alt={`Foto — ${rotulo.toLowerCase()}`}
-          className="h-16 w-16 rounded-control border border-line object-cover"
+          className="h-20 w-20 rounded-control border border-line object-cover"
         />
       ) : (
-        <div className="flex h-16 w-16 items-center justify-center rounded-control bg-white text-[11px] text-ink-faint">
-          Sem foto
-        </div>
+        <BodySilhouette escore={avaliacao.escoreCorporal} tamanho="sm" />
       )}
-      <p className="numeric text-sm font-medium text-ink">
-        {formatarPeso(avaliacao.peso)}
-      </p>
+      <p className="numeric text-lg font-bold text-ink">{formatarPeso(avaliacao.peso)}</p>
       <Badge tom={tom}>ECC {avaliacao.escoreCorporal}</Badge>
-      <p className="text-[11px] text-ink-muted">
-        {formatarDataCurta(avaliacao.data)}
-      </p>
+      <p className="text-sm text-ink-muted">{formatarDataCurta(avaliacao.data)}</p>
     </div>
   );
 }

@@ -53,7 +53,7 @@ export function NewAppointmentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm font-medium text-ink">Novo retorno</p>
+      <h2 className="text-lg font-bold tracking-tight text-ink">Novo retorno</h2>
 
       <FieldWrapper label="Paciente" htmlFor="animalRetorno" required>
         <Select
@@ -70,7 +70,7 @@ export function NewAppointmentForm({
       </FieldWrapper>
 
       <div>
-        <p className="mb-1.5 text-sm font-medium text-ink">Data do retorno</p>
+        <p className="mb-2 text-sm font-semibold text-ink">Data do retorno</p>
         <div className="flex flex-wrap gap-2">
           {(["15", "30", "outra"] as Atalho[]).map((opcao) => (
             <button
@@ -78,10 +78,10 @@ export function NewAppointmentForm({
               type="button"
               onClick={() => escolherAtalho(opcao)}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                "h-11 rounded-full border px-4 text-sm font-semibold transition duration-150 active:scale-95",
                 atalho === opcao
-                  ? "border-primary bg-primary text-white"
-                  : "border-line bg-white text-ink-muted hover:border-primary/50"
+                  ? "border-primary bg-primary text-white shadow-soft"
+                  : "border-line bg-white text-ink-muted hover:border-primary/40 hover:bg-primary-50"
               )}
             >
               {opcao === "15" ? "Em 15 dias" : opcao === "30" ? "Em 30 dias" : "Escolher outra data"}

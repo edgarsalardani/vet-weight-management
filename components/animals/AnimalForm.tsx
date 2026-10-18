@@ -4,6 +4,7 @@ import { FormEvent, useRef, useState } from "react";
 import { Camera, X } from "lucide-react";
 import { FieldWrapper, Input, Select } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
+import { FormActions } from "@/components/ui/FormActions";
 import { AnimalAvatar } from "@/components/animals/AnimalAvatar";
 import { PORTE_OPTIONS, SEXO_OPTIONS } from "@/lib/constants";
 import { NovoAnimal, Porte, Sexo } from "@/lib/types";
@@ -27,6 +28,7 @@ export function AnimalForm({ onSalvar, salvando = false }: Props) {
   const [valores, setValores] = useState(valoresIniciais);
   const [erros, setErros] = useState<Record<string, string>>({});
   const inputFotoRef = useRef<HTMLInputElement>(null);
+  const alterado = JSON.stringify(valores) !== JSON.stringify(valoresIniciais);
 
   function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
@@ -67,7 +69,7 @@ export function AnimalForm({ onSalvar, salvando = false }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center gap-4">
         <AnimalAvatar
           nome={valores.nome || "?"}
@@ -95,7 +97,7 @@ export function AnimalForm({ onSalvar, salvando = false }: Props) {
             <button
               type="button"
               onClick={() => setValores((v) => ({ ...v, fotoUrl: null }))}
-              className="inline-flex items-center gap-1 self-start text-xs text-ink-muted hover:text-status-high"
+              className="inline-flex h-11 items-center gap-1.5 self-start text-sm font-semibold text-ink-muted transition hover:text-danger"
             >
               <X className="h-3 w-3" />
               Remover foto
@@ -197,9 +199,7 @@ export function AnimalForm({ onSalvar, salvando = false }: Props) {
         />
       </FieldWrapper>
 
-      <Button type="submit" full carregando={salvando}>
-        Cadastrar animal
-      </Button>
+      <FormActions salvarLabel="Cadastrar animal" salvando={salvando} alterado={alterado} />
     </form>
   );
 }

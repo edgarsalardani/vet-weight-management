@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PawPrint } from "lucide-react";
 import { AnimalAvatar } from "@/components/animals/AnimalAvatar";
 import { Card, CardBody } from "@/components/ui/Card";
+import { MetricTile } from "@/components/ui/MetricTile";
 import { Spinner } from "@/components/ui/Spinner";
 import { WeightChart } from "@/components/charts/WeightChart";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
@@ -56,7 +57,7 @@ export default function CompartilharPage({
   if (!animal || avaliacoes.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg px-4 text-center">
-        <p className="text-ink-muted">
+        <p className="text-base text-ink-muted">
           Nenhuma avaliação disponível para exibir no momento.
         </p>
       </div>
@@ -70,12 +71,12 @@ export default function CompartilharPage({
   const faixaAtual = classificarEscore(atual.escoreCorporal);
 
   return (
-    <div className="min-h-screen bg-bg pb-16">
-      <div className="mx-auto max-w-md px-4 pt-10">
+    <main className="min-h-screen bg-gradient-to-b from-primary-50 via-bg to-bg pb-16">
+      <div className="mx-auto max-w-md animate-fade-in px-4 pt-10">
         <div className="flex flex-col items-center text-center">
           <AnimalAvatar nome={animal.nome} fotoUrl={animal.fotoUrl} tamanho="lg" />
-          <h1 className="mt-3 text-2xl font-semibold text-ink">{animal.nome}</h1>
-          <p className="text-sm text-ink-muted">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">{animal.nome}</h1>
+          <p className="mt-1 text-base text-ink-muted">
             Acompanhamento de condição corporal
           </p>
         </div>
@@ -87,52 +88,37 @@ export default function CompartilharPage({
                 ? "Situação desde o início do acompanhamento"
                 : "Situação na última avaliação"}
             </p>
-            <p className="mt-2 text-lg font-medium text-ink">
-              {faixaAtual.label}
-            </p>
-            <p className="mt-1 text-xs text-ink-faint">
-              Avaliado em {formatarDataCurta(atual.data)} pela {USUARIO_MOCK.nome}
+            <p className="mt-2 text-xl font-bold text-ink">{faixaAtual.label}</p>
+            <p className="mt-2 text-sm text-ink-muted">
+              Avaliado em {formatarDataCurta(atual.data)} por {USUARIO_MOCK.nome}
             </p>
           </CardBody>
         </Card>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <Card>
-            <CardBody className="text-center">
-              <p className="text-xs text-ink-muted">Peso atual</p>
-              <p className="numeric mt-1 text-xl font-semibold text-ink">
-                {formatarPeso(atual.peso)}
-              </p>
-            </CardBody>
-          </Card>
-          <Card>
-            <CardBody className="text-center">
-              <p className="text-xs text-ink-muted">
-                {temEvolucao ? "Variação de peso" : "Peso inicial"}
-              </p>
-              <p className="numeric mt-1 text-xl font-semibold text-ink">
-                {temEvolucao
-                  ? formatarPercentualComSinal(variacaoPeso)
-                  : formatarPeso(inicial.peso)}
-              </p>
-            </CardBody>
-          </Card>
+          <MetricTile label="Peso atual" valor={formatarPeso(atual.peso)} />
+          <MetricTile
+            label={temEvolucao ? "Variação de peso" : "Peso inicial"}
+            valor={
+              temEvolucao
+                ? formatarPercentualComSinal(variacaoPeso)
+                : formatarPeso(inicial.peso)
+            }
+          />
         </div>
 
         {temEvolucao && (
           <Card className="mt-4">
             <CardBody>
-              <p className="mb-2 text-sm font-medium text-ink">
-                Peso ao longo do tempo
-              </p>
+              <h2 className="mb-3 text-base font-bold text-ink">Peso ao longo do tempo</h2>
               <WeightChart avaliacoes={avaliacoes} />
             </CardBody>
           </Card>
         )}
 
-        <div className="mt-8 flex flex-col items-center gap-1 text-center text-xs text-ink-faint">
-          <span className="flex items-center gap-1.5 font-medium text-ink-muted">
-            <PawPrint className="h-3.5 w-3.5" />
+        <div className="mt-10 flex flex-col items-center gap-1 text-center text-sm text-ink-muted">
+          <span className="flex items-center gap-2 font-semibold text-ink">
+            <PawPrint className="h-4 w-4 text-primary" />
             VetCheck
           </span>
           <span>
@@ -141,6 +127,6 @@ export default function CompartilharPage({
           </span>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

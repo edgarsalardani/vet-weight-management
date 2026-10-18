@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useToast } from "@/context/ToastContext";
 import { RecommendationForm } from "@/components/recommendations/RecommendationForm";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
 import { criarRecomendacao } from "@/lib/services/recommendationService";
 import { Animal, NovaRecomendacao } from "@/lib/types";
@@ -15,6 +16,7 @@ export default function NovaRecomendacaoPage({
   params: { id: string };
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -35,14 +37,15 @@ export default function NovaRecomendacaoPage({
     setSalvando(true);
     await criarRecomendacao(dados);
     setSalvando(false);
+    toast({ titulo: "Recomendação salva", descricao: "Ela já aparece para o responsável." });
     router.push(`/animais/${params.id}/recomendacoes`);
   }
 
-  if (carregando) return <Spinner label="Carregando…" />;
-  if (!animal) return <p className="text-ink-muted">Animal não encontrado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando…" />;
+  if (!animal) return <p className="text-base text-ink-muted">Animal não encontrado.</p>;
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-xl">
       <PageHeader
         titulo="Nova recomendação"
         subtitulo={animal.nome}

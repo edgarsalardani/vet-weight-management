@@ -5,23 +5,32 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-bg text-ink antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-bg text-base text-ink antialiased;
+    -webkit-tap-highlight-color: rgba(35, 122, 90, 0.12);
   }
 
+  ::selection {
+    background-color: theme("colors.primary.100");
+    color: theme("colors.ink.DEFAULT");
+  }
+
+  /* Foco visível e consistente com o formato de cada elemento
+     (sem forçar border-radius, para não "quadricular" botões arredondados). */
   :focus-visible {
-    outline: 2px solid theme("colors.primary.DEFAULT");
+    outline: 3px solid theme("colors.primary.500");
     outline-offset: 2px;
-    border-radius: 4px;
   }
 
+  /* Respeita a preferência do usuário por movimento reduzido.
+     O spinner de carregamento é mantido, pois indica estado do sistema. */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *:not(.animate-spin),
+    *:not(.animate-spin)::before,
+    *:not(.animate-spin)::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -31,8 +40,8 @@
 }
 
 @layer utilities {
+  /* Números alinhados em colunas, na mesma fonte do restante da interface. */
   .numeric {
-    font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
   }
 

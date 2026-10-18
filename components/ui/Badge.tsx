@@ -12,17 +12,31 @@ const tomClasses: Record<Tom, string> = {
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tom?: Tom;
+  /** Ponto colorido antes do texto (por padrão aparece nos tons de status). */
+  dot?: boolean;
 }
 
-export function Badge({ tom = "neutral", className, ...props }: BadgeProps) {
+export function Badge({
+  tom = "neutral",
+  dot,
+  className,
+  children,
+  ...props
+}: BadgeProps) {
+  const mostrarPonto = dot ?? tom !== "neutral";
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold",
         tomClasses[tom],
         className
       )}
       {...props}
-    />
+    >
+      {mostrarPonto && (
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
+      )}
+      {children}
+    </span>
   );
 }

@@ -1,37 +1,49 @@
 "use client";
 
-import { classificarEscore } from "@/lib/constants";
+import { ECC_NIVEIS, classificarEscore } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const CORES_FAIXA: Record<string, string> = {
+const COR_ATIVA: Record<string, string> = {
   low: "bg-status-low",
   ideal: "bg-status-ideal",
   high: "bg-status-high",
 };
 
+const COR_TEXTO: Record<string, string> = {
+  low: "text-status-low",
+  ideal: "text-status-ideal",
+  high: "text-status-high",
+};
+
+const LEGENDA = [
+  { categoria: "low", label: "1–3 abaixo do ideal" },
+  { categoria: "ideal", label: "4–5 ideal" },
+  { categoria: "high", label: "6–9 acima do ideal" },
+];
+
 /**
  * Escala de 1 a 9. Quando `onChange` é informado, funciona como seletor
- * (usado no formulário de avaliação); caso contrário, é somente leitura.
+ * (formulário de avaliação); caso contrário, é somente leitura.
+ * No celular os botões ficam em duas linhas para manter um bom alvo de toque.
  */
 export function BodyScoreScale({
   value,
   onChange,
-  tamanho = "md",
 }: {
   value: number;
   onChange?: (valor: number) => void;
   tamanho?: "sm" | "md";
 }) {
   const faixa = classificarEscore(value);
+  const nivel = ECC_NIVEIS.find((n) => n.nivel === value);
   const interativo = Boolean(onChange);
 
   return (
     <div>
       <div
-        className={cn(
-          "grid grid-cols-9 gap-1.5",
-          tamanho === "sm" ? "gap-1" : "gap-1.5"
-        )}
+        role={interativo ? "radiogroup" : undefined}
+        aria-label="Escore de condição corporal de 1 a 9"
+        className="grid grid-cols-5 gap-2 sm:grid-cols-9"
       >
         {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => {
           const ativo = n === value;
@@ -42,18 +54,15 @@ export function BodyScoreScale({
               type="button"
               disabled={!interativo}
               onClick={() => onChange?.(n)}
-              aria-pressed={ativo}
+              role={interativo ? "radio" : undefined}
+              aria-checked={interativo ? ativo : undefined}
               aria-label={`Escore ${n}`}
               className={cn(
-                "flex items-center justify-center rounded-control border font-mono text-sm font-medium transition-all numeric",
-                tamanho === "sm" ? "h-8" : "h-11",
+                "numeric flex h-12 items-center justify-center rounded-control border text-lg font-bold transition duration-150",
                 ativo
-                  ? cn(
-                      CORES_FAIXA[faixaDoNumero.categoria],
-                      "border-transparent text-white shadow-sm"
-                    )
+                  ? cn(COR_ATIVA[faixaDoNumero.categoria], "scale-105 border-transparent text-white shadow-card")
                   : "border-line bg-white text-ink-muted",
-                interativo && !ativo && "hover:border-primary/50 cursor-pointer",
+                interativo && !ativo && "hover:border-primary/40 hover:bg-primary-50 active:scale-95",
                 !interativo && "cursor-default"
               )}
             >
@@ -62,20 +71,23 @@ export function BodyScoreScale({
           );
         })}
       </div>
-      <div className="mt-2 flex items-center justify-between text-xs text-ink-muted">
-        <span>1 · Muito magro</span>
-        <span
-          className={cn(
-            "font-medium",
-            faixa.categoria === "low" && "text-status-low",
-            faixa.categoria === "ideal" && "text-status-ideal",
-            faixa.categoria === "high" && "text-status-high"
-          )}
-        >
-          {faixa.label}
+
+      <p className="mt-4 text-base text-ink-muted" aria-live="polite">
+        Selecionado:{" "}
+        <span className={cn("font-bold", COR_TEXTO[faixa.categoria])}>
+          ECC {value}
+          {nivel ? ` · ${nivel.label}` : ""}
         </span>
-        <span>9 · Obeso</span>
-      </div>
+      </p>
+
+      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
+        {LEGENDA.map((l) => (
+          <li key={l.categoria} className="flex items-center gap-1.5">
+            <span aria-hidden className={cn("h-2.5 w-2.5 rounded-full", COR_ATIVA[l.categoria])} />
+            {l.label}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

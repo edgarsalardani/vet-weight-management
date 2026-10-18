@@ -1,9 +1,9 @@
 import { gerarIniciais, cn } from "@/lib/utils";
 
 const tamanhos = {
-  sm: "h-10 w-10 text-sm",
-  md: "h-14 w-14 text-base",
-  lg: "h-24 w-24 text-2xl",
+  sm: "h-11 w-11 text-base",
+  md: "h-16 w-16 text-xl",
+  lg: "h-24 w-24 text-3xl",
 };
 
 export function AnimalAvatar({
@@ -24,7 +24,7 @@ export function AnimalAvatar({
         src={fotoUrl}
         alt={`Foto de ${nome}`}
         className={cn(
-          "rounded-full border border-line object-cover",
+          "shrink-0 rounded-full object-cover ring-4 ring-white shadow-card",
           tamanhos[tamanho],
           className
         )}
@@ -35,7 +35,7 @@ export function AnimalAvatar({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full border border-primary/20 bg-primary-light font-semibold text-primary-dark",
+        "flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-100 to-primary-50 font-bold text-primary-dark ring-4 ring-white shadow-card",
         tamanhos[tamanho],
         className
       )}

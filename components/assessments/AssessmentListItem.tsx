@@ -15,66 +15,66 @@ export function AssessmentListItem({
   avaliacao: AvaliacaoCorporal;
 }) {
   const faixa = classificarEscore(avaliacao.escoreCorporal);
+  const [dia, mes, ano] = formatarDataCurta(avaliacao.data).split(" ");
 
   return (
-    <div className="flex items-start gap-4 rounded-card border border-line bg-surface p-4 shadow-card">
+    <article className="flex items-start gap-4 rounded-card border border-line/70 bg-surface p-4 shadow-card sm:p-5">
       {avaliacao.fotoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={avaliacao.fotoUrl}
           alt={`Foto da avaliação de ${formatarDataCurta(avaliacao.data)}`}
-          className="h-14 w-14 shrink-0 rounded-control border border-line object-cover"
+          className="h-16 w-16 shrink-0 rounded-2xl border border-line object-cover"
         />
       ) : (
-        <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-control bg-surfaceMuted text-center">
-          <span className="numeric text-xs font-semibold text-ink">
-            {formatarDataCurta(avaliacao.data).split(" ")[0]}
-          </span>
-          <span className="text-[10px] uppercase text-ink-muted">
-            {formatarDataCurta(avaliacao.data).split(" ")[1]}
-          </span>
+        <div
+          aria-hidden
+          className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary-50 text-primary"
+        >
+          <span className="numeric text-2xl font-bold leading-none">{dia}</span>
+          <span className="mt-1 text-xs font-bold uppercase">{mes}</span>
         </div>
       )}
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-medium text-ink">
-            {formatarDataCurta(avaliacao.data)}
+          <p className="text-base font-bold text-ink">
+            {dia} {mes} {ano}
           </p>
           <Badge tom={TOM_POR_CATEGORIA[faixa.categoria]}>
             ECC {avaliacao.escoreCorporal} · {faixa.label}
           </Badge>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
-          <span>
-            Peso:{" "}
-            <span className="numeric font-medium text-ink">
+        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-muted">
+          <div>
+            <dt className="inline">Peso: </dt>
+            <dd className="numeric inline text-base font-bold text-ink">
               {formatarPeso(avaliacao.peso)}
-            </span>
-          </span>
+            </dd>
+          </div>
           {avaliacao.massaGorda != null && (
-            <span>
-              Massa gorda:{" "}
-              <span className="numeric font-medium text-ink">
+            <div>
+              <dt className="inline">Massa gorda: </dt>
+              <dd className="numeric inline text-base font-bold text-ink">
                 {avaliacao.massaGorda}%
-              </span>
-            </span>
+              </dd>
+            </div>
           )}
           {avaliacao.massaMagra != null && (
-            <span>
-              Massa magra:{" "}
-              <span className="numeric font-medium text-ink">
+            <div>
+              <dt className="inline">Massa magra: </dt>
+              <dd className="numeric inline text-base font-bold text-ink">
                 {avaliacao.massaMagra}%
-              </span>
-            </span>
+              </dd>
+            </div>
           )}
-        </div>
+        </dl>
 
         {avaliacao.observacoes && (
-          <p className="mt-2 text-sm text-ink-muted">{avaliacao.observacoes}</p>
+          <p className="mt-3 text-base text-ink-muted">{avaliacao.observacoes}</p>
         )}
       </div>
-    </div>
+    </article>
   );
 }

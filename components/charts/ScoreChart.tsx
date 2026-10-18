@@ -25,7 +25,7 @@ export function ScoreChart({
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
+    <ResponsiveContainer width="100%" height={280}>
       <LineChart data={dados} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         {/* Faixa ideal (4-5) destacada como referência visual */}
         <ReferenceArea
@@ -38,12 +38,12 @@ export function ScoreChart({
         <CartesianGrid stroke={CHART_COLORS.line} vertical={false} />
         <XAxis
           dataKey="data"
-          tick={{ fontSize: 11, fill: CHART_COLORS.inkMuted }}
+          tick={{ fontSize: 13, fill: CHART_COLORS.inkMuted }}
           tickLine={false}
           axisLine={{ stroke: CHART_COLORS.line }}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: CHART_COLORS.inkMuted }}
+          tick={{ fontSize: 13, fill: CHART_COLORS.inkMuted }}
           tickLine={false}
           axisLine={false}
           width={28}
@@ -53,18 +53,20 @@ export function ScoreChart({
         <Tooltip
           formatter={(value: number) => [`${value} / 9`, "ECC"]}
           contentStyle={{
-            borderRadius: 8,
+            borderRadius: 14,
+            boxShadow: "0 8px 24px rgba(24, 51, 43, 0.12)",
+            padding: "10px 14px",
             borderColor: CHART_COLORS.line,
-            fontSize: 13,
+            fontSize: 14,
           }}
         />
         <Line
           type="monotone"
           dataKey="escore"
           stroke={CHART_COLORS.statusHigh}
-          strokeWidth={2.5}
-          dot={{ r: 3.5, fill: CHART_COLORS.statusHigh, strokeWidth: 0 }}
-          activeDot={{ r: 5 }}
+          strokeWidth={3}
+          dot={{ r: 4.5, fill: CHART_COLORS.statusHigh, strokeWidth: 0 }}
+          activeDot={{ r: 7 }}
         />
       </LineChart>
     </ResponsiveContainer>
