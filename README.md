@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # VetCheck
+=======
+# VetCheck - Versão 2
+>>>>>>> 7adcec0e73eaa33a99b5b765b80d0aced0e51a1a
 
 O VetCheck é uma aplicação web para acompanhar a evolução corporal de cães, principalmente em programas de controle e perda de peso. Ele reúne as avaliações feitas a cada consulta e retorno, mostra a evolução do paciente de forma visual e permite que o responsável pelo animal acompanhe o tratamento pelo celular.
 
