@@ -9,7 +9,7 @@ import { listarAvaliacoesPorAnimal } from "@/lib/services/assessmentService";
 import { Animal, AvaliacaoCorporal } from "@/lib/types";
 import { AnimalCard } from "@/components/animals/AnimalCard";
 import { Button } from "@/components/ui/Button";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function DashboardPage() {
@@ -50,19 +50,22 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between gap-3">
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-ink sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
             Olá, {primeiroNome}
           </h1>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            {animais.length}{" "}
-            {animais.length === 1 ? "paciente cadastrado" : "pacientes cadastrados"}
+          <p className="mt-1 text-base text-ink-muted">
+            {carregando
+              ? "Carregando pacientes…"
+              : `${animais.length} ${
+                  animais.length === 1 ? "paciente cadastrado" : "pacientes cadastrados"
+                }`}
           </p>
         </div>
-        <Link href="/animais/novo">
+        <Link href="/animais/novo" className="shrink-0 rounded-control">
           <Button size="sm">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             <span className="hidden sm:inline">Novo animal</span>
             <span className="sm:hidden">Novo</span>
           </Button>
@@ -70,23 +73,32 @@ export default function DashboardPage() {
       </div>
 
       {carregando ? (
-        <Spinner label="Carregando pacientes…" />
+        <div
+          role="status"
+          aria-live="polite"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <span className="sr-only">Carregando pacientes…</span>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-card" />
+          ))}
+        </div>
       ) : animais.length === 0 ? (
         <EmptyState
           icon={PawPrint}
           titulo="Nenhum animal cadastrado"
           descricao="Cadastre o primeiro paciente para começar a acompanhar a condição corporal."
           acao={
-            <Link href="/animais/novo">
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
+            <Link href="/animais/novo" className="rounded-control">
+              <Button>
+                <Plus className="h-5 w-5" />
                 Cadastrar animal
               </Button>
             </Link>
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {animais.map((animal) => (
             <AnimalCard
               key={animal.id}

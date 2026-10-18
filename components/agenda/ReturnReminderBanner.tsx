@@ -4,9 +4,8 @@ import { diasAteData, formatarDataCurta } from "@/lib/utils";
 
 /**
  * Lembrete simulado DENTRO da interface (sem push/e-mail/WhatsApp reais).
- * Compara a data atual com a data do compromisso para decidir se exibe o
- * aviso — estrutura pronta para futuramente disparar uma notificação real
- * por um canal ainda a definir.
+ * Compara a data atual com a do compromisso para decidir se exibe o aviso —
+ * estrutura pronta para futuramente disparar uma notificação real.
  */
 export function ReturnReminderBanner({
   compromisso,
@@ -23,22 +22,25 @@ export function ReturnReminderBanner({
   const ehAmanha = dias === 1;
 
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-card border border-status-high/30 bg-status-highBg px-4 py-3.5 text-status-high">
-      <BellRing className="mt-0.5 h-5 w-5 shrink-0" />
+    <div
+      role="status"
+      className="flex animate-fade-in items-start gap-4 rounded-card border border-status-high/20 bg-status-highBg p-4 text-status-high sm:p-5"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/70">
+        <BellRing className="h-5 w-5" />
+      </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">
+        <p className="text-base font-bold">
           {ehAmanha ? "Retorno amanhã" : "Seu retorno está próximo"}
         </p>
-        <p className="mt-0.5 text-sm">
-          {nomeAnimal} possui retorno {ehAmanha ? "amanhã" : `em ${dias} dias`}.
-          <br />
+        <p className="mt-0.5 text-base">
+          {nomeAnimal} possui retorno {ehAmanha ? "amanhã" : `em ${dias} dias`},{" "}
           {formatarDataCurta(compromisso.data)}
           {compromisso.horario ? ` às ${compromisso.horario}` : ""}.
         </p>
         {compromisso.orientacaoRetorno && (
-          <p className="mt-1.5 text-sm">
-            <span className="font-medium">Orientação:</span>{" "}
-            {compromisso.orientacaoRetorno}
+          <p className="mt-2 text-base">
+            <span className="font-bold">Orientação:</span> {compromisso.orientacaoRetorno}
           </p>
         )}
       </div>

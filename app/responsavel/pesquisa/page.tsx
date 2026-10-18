@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { FlaskConical, FileText } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
+import { SectionTitle } from "@/components/ui/SectionTitle";
 import { Badge } from "@/components/ui/Badge";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActivityTimelineItem } from "@/components/research/ActivityTimelineItem";
 import { QuestionnaireForm } from "@/components/research/QuestionnaireForm";
@@ -89,11 +90,11 @@ export default function ProjetoDoResponsavelPage() {
     };
   }, [sessao]);
 
-  if (carregando) return <Spinner label="Carregando projeto…" />;
+  if (carregando) return <PageSkeleton label="Carregando projeto…" />;
 
   if (!projeto || !participacao) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <PageHeader titulo="Projeto de pesquisa" voltarPara="/responsavel" />
         <EmptyState
           icon={FlaskConical}
@@ -107,98 +108,100 @@ export default function ProjetoDoResponsavelPage() {
   const documentos = DOCUMENTOS_PROJETO_MOCK[projeto.id] ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         titulo="Projeto de pesquisa"
         subtitulo={projeto.nome}
         voltarPara="/responsavel"
       />
 
-      <Card>
-        <CardBody>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <Card className="overflow-hidden">
+        <div className="bg-gradient-to-br from-primary-50 via-white to-white p-5 sm:p-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <Badge tom={TOM_STATUS_PROJETO[projeto.status]}>
               {STATUS_PROJETO_LABELS[projeto.status]}
             </Badge>
-            <span className="text-xs text-ink-muted">
+            <span className="text-sm font-medium text-ink-muted">
               {formatarDataCurta(projeto.periodoInicio)}
-              {projeto.periodoFim
-                ? ` – ${formatarDataCurta(projeto.periodoFim)}`
-                : ""}
+              {projeto.periodoFim ? ` a ${formatarDataCurta(projeto.periodoFim)}` : ""}
             </span>
           </div>
-          <p className="text-sm text-ink">{projeto.descricao}</p>
-          <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
-            <span className="text-xs text-ink-faint">Situação da participação:</span>
+          <p className="text-base text-ink">{projeto.descricao}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line/70 pt-4">
+            <span className="text-sm text-ink-muted">Situação da participação:</span>
             <Badge tom={TOM_STATUS_PARTICIPACAO[participacao.status]}>
               {STATUS_PARTICIPACAO_LABELS[participacao.status]}
             </Badge>
           </div>
-        </CardBody>
+        </div>
       </Card>
 
-      {proximaAtividade && (
-        <div className="mt-4">
-          <h2 className="mb-2 text-sm font-medium text-ink">Próxima atividade</h2>
-          <Card>
-            <CardHeader>
-              <p className="text-sm font-medium text-ink">{proximaAtividade.titulo}</p>
-              <p className="numeric text-xs text-ink-muted">
-                Prazo: {formatarDataCurta(proximaAtividade.data)}
-              </p>
-            </CardHeader>
-            {proximaAtividade.instrucao && (
+      <div className="mt-8 space-y-8">
+        {proximaAtividade && (
+          <section>
+            <SectionTitle>Próxima atividade</SectionTitle>
+            <Card>
               <CardBody>
-                <p className="text-sm text-ink-muted">{proximaAtividade.instrucao}</p>
+                <p className="text-base font-bold text-ink">{proximaAtividade.titulo}</p>
+                <p className="numeric mt-0.5 text-sm font-semibold text-primary">
+                  Prazo: {formatarDataCurta(proximaAtividade.data)}
+                </p>
+                {proximaAtividade.instrucao && (
+                  <p className="mt-3 rounded-2xl bg-primary-50 px-4 py-3 text-base text-ink">
+                    {proximaAtividade.instrucao}
+                  </p>
+                )}
               </CardBody>
-            )}
+            </Card>
+          </section>
+        )}
+
+        {questionario && (
+          <section>
+            <QuestionnaireForm
+              questionario={questionario}
+              animalId={sessao!.animalId!}
+              jaRespondido={jaRespondido}
+            />
+          </section>
+        )}
+
+        <section>
+          <SectionTitle>Cronograma</SectionTitle>
+          <Card>
+            <CardBody>
+              {atividades.map((atividade, i) => (
+                <ActivityTimelineItem
+                  key={atividade.id}
+                  atividade={atividade}
+                  ultimo={i === atividades.length - 1}
+                />
+              ))}
+            </CardBody>
           </Card>
-        </div>
-      )}
+        </section>
 
-      {questionario && (
-        <div className="mt-4">
-          <QuestionnaireForm
-            questionario={questionario}
-            animalId={sessao!.animalId!}
-            jaRespondido={jaRespondido}
-          />
-        </div>
-      )}
-
-      <div className="mt-6">
-        <h2 className="mb-3 text-sm font-medium text-ink">Cronograma</h2>
-        <Card>
-          <CardBody>
-            {atividades.map((atividade, i) => (
-              <ActivityTimelineItem
-                key={atividade.id}
-                atividade={atividade}
-                ultimo={i === atividades.length - 1}
-              />
-            ))}
-          </CardBody>
-        </Card>
+        {documentos.length > 0 && (
+          <section>
+            <SectionTitle>
+              <span className="inline-flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Documentos disponibilizados
+              </span>
+            </SectionTitle>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {documentos.map((doc) => (
+                <Card key={doc.titulo}>
+                  <CardBody>
+                    <p className="text-base font-bold text-ink">{doc.titulo}</p>
+                    <p className="mt-1 text-sm text-ink-muted">{doc.descricao}</p>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
-
-      {documentos.length > 0 && (
-        <div className="mt-6">
-          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-medium text-ink">
-            <FileText className="h-4 w-4" />
-            Documentos disponibilizados
-          </h2>
-          <div className="space-y-2.5">
-            {documentos.map((doc) => (
-              <Card key={doc.titulo}>
-                <CardBody>
-                  <p className="text-sm font-medium text-ink">{doc.titulo}</p>
-                  <p className="text-xs text-ink-muted">{doc.descricao}</p>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { FieldWrapper, Input, Textarea } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
+import { FormActions } from "@/components/ui/FormActions";
 import { NovaRecomendacao } from "@/lib/types";
 
 interface Props {
@@ -24,6 +24,7 @@ const valoresIniciais = {
 
 export function RecommendationForm({ animalId, onSalvar, salvando = false }: Props) {
   const [valores, setValores] = useState(valoresIniciais);
+  const alterado = JSON.stringify(valores) !== JSON.stringify(valoresIniciais);
 
   function campo<K extends keyof typeof valoresIniciais>(
     chave: K,
@@ -46,8 +47,8 @@ export function RecommendationForm({ animalId, onSalvar, salvando = false }: Pro
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <p className="rounded-control border border-line bg-surfaceMuted/60 px-3.5 py-3 text-xs text-ink-muted">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <p className="rounded-2xl bg-primary-50 px-4 py-3.5 text-sm text-ink-muted">
         Cada bloco abaixo é exibido separadamente para o responsável (nunca
         como um texto único). Todo o conteúdo é de preenchimento livre pela
         médica-veterinária — o sistema não calcula quantidades, calorias ou
@@ -124,9 +125,7 @@ export function RecommendationForm({ animalId, onSalvar, salvando = false }: Pro
         />
       </FieldWrapper>
 
-      <Button type="submit" full carregando={salvando}>
-        Salvar recomendação
-      </Button>
+      <FormActions salvarLabel="Salvar recomendação" salvando={salvando} alterado={alterado} />
     </form>
   );
 }

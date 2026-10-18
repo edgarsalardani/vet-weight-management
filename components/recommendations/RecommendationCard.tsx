@@ -1,6 +1,7 @@
 import { Utensils, Activity, Cookie, StickyNote, Droplet, LucideIcon } from "lucide-react";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { IconTile } from "@/components/ui/IconTile";
 import { Recomendacao } from "@/lib/types";
 import { formatarDataCurta } from "@/lib/utils";
 
@@ -11,18 +12,14 @@ interface Bloco {
 }
 
 /** Um bloco de orientação — sempre exibido separadamente, nunca como texto corrido. */
-function BlocoRecomendacao({ icon: Icon, label, valor }: Bloco) {
+function BlocoRecomendacao({ icon, label, valor }: Bloco) {
   if (!valor) return null;
   return (
-    <div className="flex items-start gap-3 rounded-control border border-line bg-surfaceMuted/50 p-3.5">
-      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-primary-light text-primary">
-        <Icon className="h-4.5 w-4.5" />
-      </span>
+    <div className="flex items-start gap-3.5 rounded-2xl bg-surfaceMuted/70 p-4">
+      <IconTile icon={icon} tamanho="sm" className="bg-white shadow-soft" />
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-          {label}
-        </p>
-        <p className="mt-0.5 text-sm text-ink">{valor}</p>
+        <p className="text-sm font-bold text-ink">{label}</p>
+        <p className="mt-0.5 text-base text-ink-muted">{valor}</p>
       </div>
     </div>
   );
@@ -47,21 +44,22 @@ export function RecommendationCard({
 
   return (
     <Card>
-      <CardHeader className="flex items-center justify-between">
-        <p className="text-sm font-medium text-ink">
-          Registrada em {formatarDataCurta(recomendacao.data)}
-        </p>
-        {vigente && <Badge tom="ideal">Vigente</Badge>}
-      </CardHeader>
       <CardBody>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <p className="text-sm text-ink-muted">
+            Registrada em{" "}
+            <span className="font-semibold text-ink">{formatarDataCurta(recomendacao.data)}</span>
+          </p>
+          {vigente && <Badge tom="ideal">Vigente</Badge>}
+        </div>
         {algumPreenchido ? (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {blocos.map((b) => (
               <BlocoRecomendacao key={b.label} {...b} />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink-muted">Nenhuma orientação registrada.</p>
+          <p className="text-base text-ink-muted">Nenhuma orientação registrada.</p>
         )}
       </CardBody>
     </Card>

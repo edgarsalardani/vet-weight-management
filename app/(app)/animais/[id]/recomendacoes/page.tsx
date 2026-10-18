@@ -5,7 +5,7 @@ import { ClipboardList, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
@@ -40,13 +40,13 @@ export default function RecomendacoesPage({
     };
   }, [params.id]);
 
-  if (carregando) return <Spinner label="Carregando recomendações…" />;
-  if (!animal) return <p className="text-ink-muted">Animal não encontrado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando recomendações…" />;
+  if (!animal) return <p className="text-base text-ink-muted">Animal não encontrado.</p>;
 
   const [atual, ...anteriores] = recomendacoes;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         titulo="Recomendações"
         subtitulo={animal.nome}
@@ -56,7 +56,7 @@ export default function RecomendacoesPage({
             size="sm"
             onClick={() => router.push(`/animais/${animal.id}/recomendacoes/nova`)}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             <span className="hidden sm:inline">Nova</span>
           </Button>
         }
@@ -72,13 +72,13 @@ export default function RecomendacoesPage({
               size="sm"
               onClick={() => router.push(`/animais/${animal.id}/recomendacoes/nova`)}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
               Nova recomendação
             </Button>
           }
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <RecommendationCard recomendacao={atual} vigente />
 
           {anteriores.length > 0 && (

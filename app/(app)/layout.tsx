@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { VetSecondaryNav } from "@/components/layout/VetSecondaryNav";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Spinner } from "@/components/ui/Spinner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { sessao, carregando } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (carregando) return;
@@ -30,11 +31,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-bg">
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-primary focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        Pular para o conteúdo
+      </a>
       <AppHeader />
-      <VetSecondaryNav />
-      <main className="mx-auto max-w-app px-4 pb-16 pt-6 sm:px-6">
-        {children}
+      <main
+        id="conteudo"
+        tabIndex={-1}
+        className="mx-auto max-w-app px-4 pb-32 pt-6 outline-none sm:px-6 sm:pt-10 md:pb-16"
+      >
+        <div key={pathname} className="animate-fade-in">
+          {children}
+        </div>
       </main>
+      <BottomNav />
     </div>
   );
 }

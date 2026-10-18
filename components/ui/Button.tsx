@@ -16,17 +16,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-dark active:bg-primary-dark disabled:bg-ink-faint",
+    "bg-primary text-white shadow-soft hover:bg-primary-dark hover:shadow-card active:bg-primary-dark disabled:bg-primary-100 disabled:text-ink-faint disabled:shadow-none",
   secondary:
-    "bg-white text-ink border border-line hover:bg-surfaceMuted disabled:text-ink-faint",
-  ghost: "bg-transparent text-ink hover:bg-surfaceMuted disabled:text-ink-faint",
+    "border border-line bg-white text-ink shadow-soft hover:border-primary/40 hover:bg-primary-50 disabled:bg-surfaceMuted disabled:text-ink-faint disabled:shadow-none",
+  ghost:
+    "bg-transparent text-primary hover:bg-primary-50 disabled:text-ink-faint",
   danger:
-    "bg-transparent text-status-high border border-status-high/40 hover:bg-status-highBg disabled:text-ink-faint",
+    "border border-danger/30 bg-white text-danger hover:bg-danger-bg disabled:text-ink-faint",
 };
 
+// Alturas de 44 px (sm) e 48 px (md): alvo de toque confortável no celular.
 const sizeClasses: Record<Size, string> = {
-  md: "h-11 px-5 text-[15px]",
-  sm: "h-9 px-3.5 text-sm",
+  md: "h-12 px-6 text-base",
+  sm: "h-11 px-4 text-sm",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -47,9 +49,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || carregando}
+        aria-busy={carregando || undefined}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-control font-medium transition-colors",
-          "disabled:cursor-not-allowed",
+          "inline-flex select-none items-center justify-center gap-2 rounded-control font-semibold transition duration-150 ease-out",
+          "active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100",
           variantClasses[variant],
           sizeClasses[size],
           full && "w-full",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FlaskConical } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ResearchProjectCard } from "@/components/research/ResearchProjectCard";
 import { contarParticipantes, listarProjetos } from "@/lib/services/researchService";
@@ -36,10 +36,10 @@ export default function PesquisaPage() {
     };
   }, []);
 
-  if (carregando) return <Spinner label="Carregando projetos…" />;
+  if (carregando) return <PageSkeleton label="Carregando projetos…" />;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         titulo="Projetos de Pesquisa"
         subtitulo="Independente do acompanhamento corporal — compartilha apenas o cadastro de pacientes"
@@ -52,7 +52,7 @@ export default function PesquisaPage() {
           descricao="Os projetos de pesquisa aparecerão aqui."
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {projetos.map((projeto) => (
             <ResearchProjectCard
               key={projeto.id}

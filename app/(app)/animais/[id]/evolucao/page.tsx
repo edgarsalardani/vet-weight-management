@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Stat } from "@/components/ui/Stat";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { WeightChart } from "@/components/charts/WeightChart";
 import { ScoreChart } from "@/components/charts/ScoreChart";
 import { CompositionChart } from "@/components/charts/CompositionChart";
-import { BodySilhouette } from "@/components/assessments/BodySilhouette";
+import { EvolutionSilhouettes } from "@/components/assessments/EvolutionSilhouettes";
+import { ChartCard } from "@/components/charts/ChartCard";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
 import { listarAvaliacoesPorAnimal } from "@/lib/services/assessmentService";
 import { Animal, AvaliacaoCorporal } from "@/lib/types";
@@ -52,12 +52,12 @@ export default function EvolucaoPage({ params }: { params: { id: string } }) {
     };
   }, [params.id]);
 
-  if (carregando) return <Spinner label="Carregando evolução…" />;
-  if (!animal) return <p className="text-ink-muted">Animal não encontrado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando evolução…" />;
+  if (!animal) return <p className="text-base text-ink-muted">Animal não encontrado.</p>;
 
   if (avaliacoes.length < 2) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <PageHeader
           titulo="Evolução"
           subtitulo={animal.nome}
@@ -74,8 +74,7 @@ export default function EvolucaoPage({ params }: { params: { id: string } }) {
 
   const inicial = avaliacoes[0];
   const atual = avaliacoes[avaliacoes.length - 1];
-  const meio = avaliacoes[Math.floor((avaliacoes.length - 1) / 2)];
-
+  
   const variacaoPeso = calcularVariacaoPercentual(inicial.peso, atual.peso);
   const deltaPeso = inicial.peso - atual.peso; // positivo = perdeu peso
   const rotuloDeltaPeso = deltaPeso >= 0 ? "Peso perdido" : "Peso ganho";
@@ -98,16 +97,16 @@ export default function EvolucaoPage({ params }: { params: { id: string } }) {
   const temMassaMagra = inicial.massaMagra != null && atual.massaMagra != null;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-4xl">
       <PageHeader
         titulo="Evolução"
-        subtitulo={`${animal.nome} · ${formatarDataCurta(inicial.data)} — ${formatarDataCurta(
+        subtitulo={`${animal.nome} · ${formatarDataCurta(inicial.data)} a ${formatarDataCurta(
           atual.data
         )}`}
         voltarPara={`/animais/${animal.id}`}
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <Stat label="Peso inicial" valor={formatarPeso(inicial.peso)} />
         <Stat label="Peso atual" valor={formatarPeso(atual.peso)} />
         <Stat
@@ -122,101 +121,48 @@ export default function EvolucaoPage({ params }: { params: { id: string } }) {
           tomVariacao={tomEscore}
         />
         {temMassaGorda && (
-          <Stat
-            label="Massa gorda"
-            valor={`${inicial.massaGorda}% → ${atual.massaGorda}%`}
-          />
+          <Stat label="Massa gorda" valor={`${inicial.massaGorda}% → ${atual.massaGorda}%`} />
         )}
         {temMassaMagra && (
-          <Stat
-            label="Massa magra"
-            valor={`${inicial.massaMagra}% → ${atual.massaMagra}%`}
-          />
+          <Stat label="Massa magra" valor={`${inicial.massaMagra}% → ${atual.massaMagra}%`} />
         )}
       </div>
 
-      <div className="mt-5 space-y-4">
-        <Card>
-          <CardHeader>
-            <p className="text-sm font-medium text-ink">Peso ao longo do tempo</p>
-          </CardHeader>
-          <CardBody>
-            <WeightChart avaliacoes={avaliacoes} />
-          </CardBody>
-        </Card>
+      <div className="mt-8 grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <ChartCard titulo="Peso ao longo do tempo" className="lg:col-span-2">
+          <WeightChart avaliacoes={avaliacoes} />
+        </ChartCard>
 
-        <Card>
-          <CardHeader>
-            <p className="text-sm font-medium text-ink">
-              Escore de Condição Corporal ao longo do tempo
-            </p>
-          </CardHeader>
-          <CardBody>
-            <ScoreChart avaliacoes={avaliacoes} />
-            <p className="mt-2 text-xs text-ink-muted">
-              Situação atual:{" "}
-              <span className="font-medium text-ink">{faixaAtual.label}</span>
-            </p>
-          </CardBody>
-        </Card>
+        <ChartCard
+          titulo="Escore de condição corporal"
+          descricao={`Situação atual: ${faixaAtual.label}`}
+        >
+          <ScoreChart avaliacoes={avaliacoes} />
+        </ChartCard>
 
         {(temMassaGorda || temMassaMagra) && (
-          <Card>
-            <CardHeader>
-              <p className="text-sm font-medium text-ink">
-                Composição corporal ao longo do tempo
-              </p>
-            </CardHeader>
-            <CardBody>
-              <CompositionChart avaliacoes={avaliacoes} />
-            </CardBody>
-          </Card>
+          <ChartCard titulo="Composição corporal">
+            <CompositionChart avaliacoes={avaliacoes} />
+          </ChartCard>
         )}
 
-        <Card>
-          <CardHeader>
-            <p className="text-sm font-medium text-ink">
-              Representação visual da evolução corporal
-            </p>
-          </CardHeader>
-          <CardBody>
-            <p className="mb-4 text-xs text-ink-muted">
-              Ilustração simulada com base no escore de cada avaliação — não
-              representa a aparência real do animal.
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {[inicial, meio, atual].map((av, i) => {
-                const rotulo = ["Inicial", "Evolução", "Atual"][i];
-                return (
-                  <div
-                    key={av.id}
-                    className="flex flex-col items-center gap-1.5 rounded-control border border-line bg-surfaceMuted/60 p-3 text-center"
-                  >
-                    <span className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-                      {rotulo}
-                    </span>
-                    <BodySilhouette escore={av.escoreCorporal} tamanho="md" />
-                    <span className="numeric text-sm font-medium text-ink">
-                      ECC {av.escoreCorporal}
-                    </span>
-                    <span className="text-[11px] text-ink-muted">
-                      {formatarDataCurta(av.data)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardBody>
-        </Card>
-
-        <Link
-          href={`/animais/${animal.id}/comparacao`}
-          className="flex items-center justify-center gap-1.5 rounded-card border border-line bg-surface py-3 text-sm font-medium text-primary shadow-card hover:border-primary/40"
+        <ChartCard
+          titulo="Representação visual da evolução"
+          className="lg:col-span-2"
         >
-          Ver comparação completa (inicial × atual)
-          <ChevronRight className="h-4 w-4" />
-        </Link>
+          <EvolutionSilhouettes avaliacoes={avaliacoes} />
+        </ChartCard>
       </div>
+
+      <Link
+        href={`/animais/${animal.id}/comparacao`}
+        className="group mt-6 flex items-center justify-between gap-3 rounded-card border border-line/70 bg-surface p-5 shadow-card transition duration-150 hover:-translate-y-0.5 hover:shadow-elevated"
+      >
+        <span className="text-base font-semibold text-primary">
+          Ver comparação completa (inicial, anterior e atual)
+        </span>
+        <ChevronRight className="h-5 w-5 shrink-0 text-primary transition-transform duration-150 group-hover:translate-x-0.5" />
+      </Link>
     </div>
   );
 }

@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { GitCompareArrows } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BodySilhouette } from "@/components/assessments/BodySilhouette";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
 import { listarAvaliacoesPorAnimal } from "@/lib/services/assessmentService";
 import { Animal, AvaliacaoCorporal } from "@/lib/types";
 import { classificarEscore } from "@/lib/constants";
-import { cn, formatarDataCurta } from "@/lib/utils";
+import { cn, formatarDataCurta, formatarPeso } from "@/lib/utils";
 
 const TOM_POR_CATEGORIA = {
   low: "low",
@@ -84,12 +84,12 @@ export default function ComparacaoPage({
     };
   }, [params.id]);
 
-  if (carregando) return <Spinner label="Carregando comparação…" />;
-  if (!animal) return <p className="text-ink-muted">Animal não encontrado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando comparação…" />;
+  if (!animal) return <p className="text-base text-ink-muted">Animal não encontrado.</p>;
 
   if (avaliacoes.length < 2) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <PageHeader
           titulo="Comparação"
           subtitulo={animal.nome}
@@ -128,16 +128,26 @@ export default function ComparacaoPage({
   })).filter((l) => l.valores.some((v) => v != null));
 
   const gridColsClass = colunas.length === 3 ? "grid-cols-3" : "grid-cols-2";
+  const modelo = `minmax(7.5rem,1.6fr) repeat(${colunas.length + 1}, minmax(4.5rem,1fr))`;
+
+  function variacao(valores: (string | number | null | undefined)[], unidade?: string) {
+    const primeiro = valores[0];
+    const ultimo = valores[valores.length - 1];
+    if (typeof primeiro !== "number" || typeof ultimo !== "number") return "—";
+    const delta = Number((ultimo - primeiro).toFixed(2));
+    if (delta === 0) return "sem mudança";
+    return `${delta > 0 ? "+" : "−"}${Math.abs(delta)}${unidade ?? ""}`;
+  }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-4xl">
       <PageHeader
         titulo="Comparação"
-        subtitulo={`${animal.nome} · avaliação inicial, anterior e atual, quando disponíveis`}
+        subtitulo={`${animal.nome} · inicial, anterior e atual`}
         voltarPara={`/animais/${animal.id}`}
       />
 
-      <div className={cn("grid gap-3", gridColsClass)}>
+      <div className={cn("grid gap-3 sm:gap-5", gridColsClass)}>
         {colunas.map((c) => {
           const faixa = classificarEscore(c.avaliacao.escoreCorporal);
           return (
@@ -151,56 +161,65 @@ export default function ComparacaoPage({
         })}
       </div>
 
-      <Card className="mt-4">
-        <CardHeader>
-          <p className="text-sm font-medium text-ink">Medidas e composição</p>
-        </CardHeader>
-        <CardBody className="divide-y divide-line p-0">
-          <div
-            className="grid px-5 py-2.5 text-xs font-medium text-ink-faint"
-            style={{ gridTemplateColumns: `1.4fr repeat(${colunas.length}, 1fr)` }}
-          >
-            <span>Métrica</span>
-            {colunas.map((c) => (
-              <span key={c.avaliacao.id} className="text-center">
-                {c.rotulo}
-              </span>
-            ))}
-          </div>
-          {linhas.map(({ metrica, valores }) => (
-            <div
-              key={metrica.label}
-              className="grid items-center px-5 py-3 text-sm"
-              style={{ gridTemplateColumns: `1.4fr repeat(${colunas.length}, 1fr)` }}
-            >
-              <span className="text-ink-muted">{metrica.label}</span>
-              {valores.map((v, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    "numeric text-center text-ink",
-                    i === valores.length - 1 && "font-medium"
-                  )}
-                >
-                  {v != null ? `${v}${metrica.unidade ?? ""}` : "—"}
-                </span>
-              ))}
+      <Card className="mt-6">
+        <CardBody className="pb-3">
+          <h2 className="text-base font-bold text-ink">Medidas e composição</h2>
+          <div className="-mx-2 mt-3 overflow-x-auto px-2">
+            <div className="min-w-[30rem]">
+              <div
+                className="grid gap-2 px-3 pb-2 text-xs font-bold uppercase tracking-wide text-ink-faint"
+                style={{ gridTemplateColumns: modelo }}
+              >
+                <span>Métrica</span>
+                {colunas.map((c) => (
+                  <span key={c.avaliacao.id} className="text-center">
+                    {c.rotulo}
+                  </span>
+                ))}
+                <span className="text-center">Variação</span>
+              </div>
+              <div className="space-y-1">
+                {linhas.map(({ metrica, valores }, idx) => (
+                  <div
+                    key={metrica.label}
+                    className={cn(
+                      "grid items-center gap-2 rounded-2xl px-3 py-3 text-sm",
+                      idx % 2 === 0 ? "bg-surfaceMuted/70" : "bg-transparent"
+                    )}
+                    style={{ gridTemplateColumns: modelo }}
+                  >
+                    <span className="font-medium text-ink-muted">{metrica.label}</span>
+                    {valores.map((v, i) => (
+                      <span
+                        key={i}
+                        className={cn(
+                          "numeric text-center text-ink",
+                          i === valores.length - 1 && "font-bold"
+                        )}
+                      >
+                        {v != null ? `${v}${metrica.unidade ?? ""}` : "—"}
+                      </span>
+                    ))}
+                    <span className="numeric text-center font-bold text-primary">
+                      {variacao(valores, metrica.unidade)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          </div>
         </CardBody>
       </Card>
 
       {colunas.some((c) => c.avaliacao.observacoes) && (
-        <div className={cn("mt-4 grid gap-3", gridColsClass)}>
+        <div className={cn("mt-6 grid gap-4 max-sm:grid-cols-1", gridColsClass)}>
           {colunas.map((c) => (
             <Card key={c.avaliacao.id}>
-              <CardHeader>
-                <p className="text-xs font-medium text-ink-faint">
-                  Observações · {formatarDataCurta(c.avaliacao.data)}
-                </p>
-              </CardHeader>
               <CardBody>
-                <p className="text-sm text-ink">
+                <p className="text-xs font-bold uppercase tracking-wide text-ink-faint">
+                  Observações · {c.rotulo} · {formatarDataCurta(c.avaliacao.data)}
+                </p>
+                <p className="mt-2 text-base text-ink">
                   {c.avaliacao.observacoes || "Sem observações registradas."}
                 </p>
               </CardBody>
@@ -223,22 +242,23 @@ function ColunaAvaliacao({
 }) {
   return (
     <Card>
-      <CardBody className="flex flex-col items-center gap-1.5 text-center">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
+      <CardBody className="flex flex-col items-center gap-2 px-3 py-4 text-center sm:px-4">
+        <span className="rounded-full bg-primary-50 px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-primary">
           {rotulo}
-        </p>
+        </span>
         {avaliacao.fotoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avaliacao.fotoUrl}
             alt={`Foto da avaliação ${rotulo.toLowerCase()}`}
-            className="h-16 w-16 rounded-control border border-line object-cover"
+            className="h-20 w-20 rounded-control border border-line object-cover"
           />
         ) : (
-          <BodySilhouette escore={avaliacao.escoreCorporal} tamanho="sm" />
+          <BodySilhouette escore={avaliacao.escoreCorporal} tamanho="md" />
         )}
-        <p className="text-xs text-ink">{formatarDataCurta(avaliacao.data)}</p>
+        <p className="numeric text-lg font-bold text-ink">{formatarPeso(avaliacao.peso)}</p>
         <Badge tom={tomEscore}>ECC {avaliacao.escoreCorporal}</Badge>
+        <p className="text-sm text-ink-muted">{formatarDataCurta(avaliacao.data)}</p>
       </CardBody>
     </Card>
   );

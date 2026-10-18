@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ChevronRight, LucideIcon } from "lucide-react";
+import { IconTile } from "@/components/ui/IconTile";
 import { cn } from "@/lib/utils";
 
 export function NavCard({
   href,
-  icon: Icon,
+  icon,
   titulo,
   descricao,
   desabilitado = false,
@@ -20,23 +21,32 @@ export function NavCard({
   const conteudo = (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-card border border-line bg-surface p-4 shadow-card transition-colors",
-        desabilitado ? "opacity-50" : "hover:border-primary/40",
+        "group flex h-full items-center gap-4 rounded-card border border-line/70 bg-surface p-4 shadow-card transition duration-150 ease-out sm:p-5",
+        desabilitado
+          ? "opacity-70"
+          : "hover:-translate-y-0.5 hover:shadow-elevated active:translate-y-0 active:scale-[0.99]",
         className
       )}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-primary-light text-primary">
-        <Icon className="h-5 w-5" />
-      </div>
+      <IconTile
+        icon={icon}
+        className={desabilitado ? "bg-surfaceMuted text-ink-faint" : undefined}
+      />
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-ink">{titulo}</p>
-        <p className="truncate text-xs text-ink-muted">{descricao}</p>
+        <p className="text-base font-semibold text-ink">{titulo}</p>
+        <p className="mt-0.5 text-sm text-ink-muted">{descricao}</p>
       </div>
-      {!desabilitado && <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" />}
+      {!desabilitado && (
+        <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-150 group-hover:translate-x-0.5" />
+      )}
     </div>
   );
 
-  if (desabilitado) return conteudo;
+  if (desabilitado) return <div aria-disabled="true">{conteudo}</div>;
 
-  return <Link href={href}>{conteudo}</Link>;
+  return (
+    <Link href={href} className="block rounded-card">
+      {conteudo}
+    </Link>
+  );
 }

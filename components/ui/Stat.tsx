@@ -13,20 +13,22 @@ export function Stat({
   tomVariacao?: "positivo" | "negativo" | "neutral";
 }) {
   return (
-    <div className="rounded-card border border-line bg-surface p-4 shadow-card">
-      <p className="text-xs text-ink-muted">{label}</p>
-      <p className="numeric mt-1 text-xl font-semibold text-ink">{valor}</p>
+    <div className="rounded-card border border-line/70 bg-surface p-4 shadow-soft sm:p-5">
+      <p className="text-sm font-medium text-ink-muted">{label}</p>
+      <p className="numeric mt-1.5 break-words text-lg font-bold leading-snug text-ink sm:text-xl">
+        {valor}
+      </p>
       {variacao && (
-        <p
+        <span
           className={cn(
-            "numeric mt-0.5 text-xs font-medium",
-            tomVariacao === "positivo" && "text-status-ideal",
-            tomVariacao === "negativo" && "text-status-high",
-            tomVariacao === "neutral" && "text-ink-muted"
+            "numeric mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
+            tomVariacao === "positivo" && "bg-status-idealBg text-status-ideal",
+            tomVariacao === "negativo" && "bg-status-highBg text-status-high",
+            tomVariacao === "neutral" && "bg-surfaceMuted text-ink-muted"
           )}
         >
           {variacao}
-        </p>
+        </span>
       )}
     </div>
   );

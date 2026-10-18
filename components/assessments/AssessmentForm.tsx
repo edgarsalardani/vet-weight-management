@@ -4,6 +4,7 @@ import { FormEvent, useRef, useState } from "react";
 import { Camera, X } from "lucide-react";
 import { FieldWrapper, Input, Textarea } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
+import { FormActions } from "@/components/ui/FormActions";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { BodyScoreScale } from "@/components/assessments/BodyScoreScale";
 import { NovaAvaliacao } from "@/lib/types";
@@ -34,6 +35,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
   const [valores, setValores] = useState(valoresIniciais);
   const [erros, setErros] = useState<Record<string, string>>({});
   const inputFotoRef = useRef<HTMLInputElement>(null);
+  const alterado = JSON.stringify(valores) !== JSON.stringify(valoresIniciais);
 
   function campo<K extends keyof typeof valoresIniciais>(
     chave: K,
@@ -90,7 +92,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <FieldWrapper label="Data da avaliação" htmlFor="data" required erro={erros.data}>
           <Input
@@ -120,7 +122,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
 
       <Card>
         <CardHeader>
-          <p className="text-sm font-medium text-ink">
+          <p className="text-base font-bold text-ink">
             Escore de Condição Corporal (ECC)
           </p>
         </CardHeader>
@@ -164,7 +166,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
 
       <Card>
         <CardHeader>
-          <p className="text-sm font-medium text-ink">Medidas corporais (cm)</p>
+          <p className="text-base font-bold text-ink">Medidas corporais (cm)</p>
         </CardHeader>
         <CardBody className="grid grid-cols-2 gap-4">
           <FieldWrapper label="Circunf. torácica" htmlFor="circToracica">
@@ -246,7 +248,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
             <button
               type="button"
               onClick={() => campo("fotoUrl", null)}
-              className="inline-flex items-center gap-1 self-start text-xs text-ink-muted hover:text-status-high"
+              className="inline-flex h-11 items-center gap-1.5 self-start text-sm font-semibold text-ink-muted transition hover:text-danger"
             >
               <X className="h-3 w-3" />
               Remover foto
@@ -265,9 +267,7 @@ export function AssessmentForm({ animalId, onSalvar, salvando = false }: Props) 
         />
       </FieldWrapper>
 
-      <Button type="submit" full carregando={salvando}>
-        Salvar avaliação
-      </Button>
+      <FormActions salvarLabel="Salvar avaliação" salvando={salvando} alterado={alterado} />
     </form>
   );
 }

@@ -3,10 +3,11 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { FolderOpen, Plus, Paperclip, X } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { FieldWrapper, Input, Textarea } from "@/components/ui/Field";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DocumentListItem } from "@/components/documents/DocumentListItem";
 import { buscarAnimalPorId } from "@/lib/services/animalService";
@@ -23,6 +24,8 @@ export default function DocumentosPage({
 }: {
   params: { id: string };
 }) {
+  const { toast } = useToast();
+  const [erroTitulo, setErroTitulo] = useState<string | null>(null);
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -67,7 +70,11 @@ export default function DocumentosPage({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!titulo.trim() || !animal) return;
+    if (!animal) return;
+    if (!titulo.trim()) {
+      setErroTitulo("Informe o título ou tipo do documento.");
+      return;
+    }
     setSalvando(true);
     const novo = await criarDocumento({
       animalId: animal.id,
@@ -79,6 +86,7 @@ export default function DocumentosPage({
     });
     setDocumentos((docs) => [novo, ...docs]);
     setSalvando(false);
+    toast({ titulo: "Documento adicionado", descricao: novo.titulo });
     setMostrarForm(false);
     setTitulo("");
     setDescricao("");
@@ -88,11 +96,11 @@ export default function DocumentosPage({
     setData(hoje);
   }
 
-  if (carregando) return <Spinner label="Carregando documentos…" />;
-  if (!animal) return <p className="text-ink-muted">Animal não encontrado.</p>;
+  if (carregando) return <PageSkeleton label="Carregando documentos…" />;
+  if (!animal) return <p className="text-base text-ink-muted">Animal não encontrado.</p>;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         titulo="Documentos e exames"
         subtitulo={animal.nome}
@@ -100,7 +108,7 @@ export default function DocumentosPage({
         acao={
           !mostrarForm && (
             <Button size="sm" onClick={() => setMostrarForm(true)}>
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
               <span className="hidden sm:inline">Adicionar</span>
             </Button>
           )
@@ -108,17 +116,21 @@ export default function DocumentosPage({
       />
 
       {mostrarForm && (
-        <Card className="mb-5">
+        <Card className="mb-6 animate-pop-in">
           <CardBody>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <p className="text-sm font-medium text-ink">Novo documento</p>
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <h2 className="text-lg font-bold tracking-tight text-ink">Novo documento</h2>
 
-              <FieldWrapper label="Título / tipo" htmlFor="titulo" required>
+              <FieldWrapper label="Título / tipo" htmlFor="titulo" required erro={erroTitulo ?? undefined}>
                 <Input
                   id="titulo"
                   placeholder="Ex.: Hemograma"
                   value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
+                  erro={Boolean(erroTitulo)}
+                  onChange={(e) => {
+                    setTitulo(e.target.value);
+                    if (erroTitulo) setErroTitulo(null);
+                  }}
                 />
               </FieldWrapper>
 
@@ -142,7 +154,7 @@ export default function DocumentosPage({
               </FieldWrapper>
 
               <div>
-                <p className="mb-1.5 text-sm font-medium text-ink">Arquivo</p>
+                <p className="mb-2 text-sm font-semibold text-ink">Arquivo</p>
                 <input
                   ref={inputArquivoRef}
                   type="file"
@@ -155,28 +167,31 @@ export default function DocumentosPage({
                   size="sm"
                   onClick={() => inputArquivoRef.current?.click()}
                 >
-                  <Paperclip className="h-4 w-4" />
+                  <Paperclip className="h-5 w-5" />
                   {nomeArquivo ? "Trocar arquivo" : "Selecionar arquivo (simulado)"}
                 </Button>
                 {nomeArquivo && (
-                  <p className="mt-1.5 text-xs text-ink-muted">{nomeArquivo}</p>
+                  <p className="mt-2 text-sm font-medium text-ink">{nomeArquivo}</p>
                 )}
-                <p className="mt-1.5 text-xs text-ink-faint">
+                <p className="mt-2 text-sm text-ink-muted">
                   Nesta etapa o envio é apenas simulado — nenhum arquivo é
                   enviado a um servidor.
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
                 <Button type="submit" carregando={salvando}>
                   Salvar documento
                 </Button>
                 <Button
                   type="button"
-                  variant="ghost"
-                  onClick={() => setMostrarForm(false)}
+                  variant="secondary"
+                  onClick={() => {
+                    setMostrarForm(false);
+                    setErroTitulo(null);
+                  }}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                   Cancelar
                 </Button>
               </div>
@@ -191,14 +206,14 @@ export default function DocumentosPage({
           titulo="Nenhum documento registrado"
           descricao="Adicione exames e outros documentos relacionados a este paciente."
           acao={
-            <Button size="sm" onClick={() => setMostrarForm(true)}>
-              <Plus className="h-4 w-4" />
+            <Button onClick={() => setMostrarForm(true)}>
+              <Plus className="h-5 w-5" />
               Adicionar documento
             </Button>
           }
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {documentos.map((doc) => (
             <DocumentListItem key={doc.id} documento={doc} />
           ))}

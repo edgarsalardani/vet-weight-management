@@ -18,24 +18,24 @@ export function PageHeader({
   const router = useRouter();
 
   return (
-    <div className="mb-6 flex items-start justify-between gap-3">
-      <div className="flex items-start gap-3">
+    <div className="mb-6 flex items-start justify-between gap-4 sm:mb-8">
+      <div className="flex min-w-0 items-start gap-3 sm:gap-4">
         {voltarPara && (
           <button
             type="button"
             onClick={() => router.push(voltarPara)}
             aria-label="Voltar"
-            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-white text-ink-muted transition-colors hover:bg-surfaceMuted"
+            className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-white text-ink shadow-soft transition duration-150 hover:bg-primary-50 active:scale-95"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <div>
-          <h1 className="text-xl font-semibold text-ink sm:text-2xl">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
             {titulo}
           </h1>
           {subtitulo && (
-            <p className="mt-0.5 text-sm text-ink-muted">{subtitulo}</p>
+            <p className="mt-1 text-base text-ink-muted">{subtitulo}</p>
           )}
         </div>
       </div>
